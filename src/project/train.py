@@ -39,8 +39,10 @@ def train_phrasebank(
         num_workers=num_workers,
         pin_memory=pin_memory,
         persistent_workers=persistent_workers if num_workers > 0 else False,
-        prefetch_factor=prefetch_factor if (num_workers > 0 and prefetch_factor is not None) else None,
     )
+    # Set prefetch_factor only when num_workers > 0 and a valid int is provided
+    if num_workers > 0 and prefetch_factor is not None:
+        loader.prefetch_factor = int(prefetch_factor)
 
     model = TextSentimentModel(vocab_size=len(vocab), embedding_dim=64, num_classes=3)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
