@@ -6,46 +6,6 @@ import typer
 from torch.utils.data import Dataset
 
 
-class MyDataset(Dataset):
-    """Minimal numeric dataset used for tests and simple demos.
-
-    - Loads numbers from `data_path/**/*.txt` (one float per line).
-    - Falls back to synthetic `[0..99]` if none are found.
-    - Returns `(x, y)` where `y == x` for toy regression.
-    """
-
-    def __init__(self, data_path: Union[str, Path]) -> None:
-        self.data_path = Path(data_path)
-        self._xs: List[float] = []
-
-        if self.data_path.is_dir():
-            for txt in sorted(self.data_path.glob("**/*.txt")):
-                for line in txt.read_text(encoding="utf-8").splitlines():
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        self._xs.append(float(line))
-                    except ValueError:
-                        continue
-
-        if not self._xs:
-            self._xs = [float(i) for i in range(100)]
-
-    def __len__(self) -> int:
-        return len(self._xs)
-
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = torch.tensor([self._xs[index]], dtype=torch.float32)
-        y = x.clone()
-        return x, y
-
-    def preprocess(self, output_folder: Union[str, Path]) -> None:
-        out_dir = Path(output_folder)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        torch.save(self._xs, out_dir / "dataset.pt")
-
-
 SentimentLabel = Literal["negative", "neutral", "positive"]
 
 
@@ -158,26 +118,25 @@ def preprocess(
     output_folder: Union[str, Path],
     agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
 ) -> None:
-    """CLI entry to preprocess data.
+    """CLI entry to preprocess Financial Phrase Bank data only.
 
-    If `data_path` contains any `Sentences_*Agree.txt`, preprocess PhraseBank;
-    otherwise, preprocess the numeric toy dataset.
+    Requires that `data_path` contains one of the `Sentences_*Agree.txt` files.
     """
-    print("Preprocessing data...")
+    print("Preprocessing Financial Phrase Bank...")
     data_root = Path(data_path)
-    has_phrasebank = any(
+    required_present = any(
         (data_root / fname).exists() for fname in FinancialPhraseBankDataset.AGREEMENTS.values()
     )
-    if has_phrasebank:
-        ds = FinancialPhraseBankDataset(data_root, agreement=agreement)
-        ds.preprocess(output_folder, agreement=agreement)
-        print(
-            f"Saved encoded phrasebank ({agreement}) to {Path(output_folder) / f'phrasebank_{agreement}.pt'}"
+    if not required_present:
+        raise FileNotFoundError(
+            "No Financial Phrase Bank files found. Expected one of: "
+            + ", ".join(FinancialPhraseBankDataset.AGREEMENTS.values())
         )
-    else:
-        dataset = MyDataset(data_root)
-        dataset.preprocess(output_folder)
-        print(f"Saved numeric dataset to {Path(output_folder) / 'dataset.pt'}")
+    ds = FinancialPhraseBankDataset(data_root, agreement=agreement)
+    ds.preprocess(output_folder, agreement=agreement)
+    print(
+        f"Saved encoded phrasebank ({agreement}) to {Path(output_folder) / f'phrasebank_{agreement}.pt'}"
+    )
 
 
 if __name__ == "__main__":

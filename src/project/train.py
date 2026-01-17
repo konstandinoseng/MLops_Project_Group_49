@@ -1,36 +1,11 @@
+import os
 from typing import Tuple
 
 import torch
 from torch.utils.data import DataLoader
 
-from project.data import FinancialPhraseBankDataset, MyDataset
-from project.model import Model, TextSentimentModel
-
-
-def train_numeric(epochs: int = 2, batch_size: int = 16, lr: float = 1e-2) -> None:
-    dataset = MyDataset("data/raw")
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-    model = Model()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    criterion = torch.nn.MSELoss()
-
-    model.train()
-    for epoch in range(epochs):
-        epoch_loss = 0.0
-        for batch in loader:
-            x, y = batch  # type: Tuple[torch.Tensor, torch.Tensor]
-            x = x.view(-1, 1)
-            y = y.view(-1, 1)
-
-            optimizer.zero_grad()
-            preds = model(x)
-            loss = criterion(preds, y)
-            loss.backward()
-            optimizer.step()
-
-            epoch_loss += float(loss.item())
-        print(f"numeric | epoch={epoch+1} loss={epoch_loss:.4f}")
+from project.data import FinancialPhraseBankDataset
+from project.model import TextSentimentModel
 
 
 def train_phrasebank(
@@ -69,5 +44,10 @@ def train_phrasebank(
 
 
 if __name__ == "__main__":
-    # Default run numeric toy to preserve simple behavior
-    train_numeric()
+    path = os.environ.get("PHRASEBANK_PATH")
+    if not path:
+        print("Set PHRASEBANK_PATH to the dataset root, e.g.,")
+        print(r"  set PHRASEBANK_PATH=F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0")
+        print("Then run: python src\\project\\train.py")
+    else:
+        train_phrasebank(path, agreement="AllAgree", epochs=3, batch_size=32, lr=1e-3)
