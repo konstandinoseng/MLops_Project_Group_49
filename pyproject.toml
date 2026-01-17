@@ -56,7 +56,7 @@ explicit = true
 line-length = 120
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict_optional = true
 warn_unused_ignores = true
 warn_redundant_casts = true
