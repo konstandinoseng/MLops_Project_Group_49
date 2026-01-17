@@ -77,35 +77,37 @@ def train_phrasebank(
     print(f"Saved model to {out_path}")
 
 
-app = typer.Typer(help="Training utilities for Financial Phrase Bank")
+if typer is not None:
+    app = typer.Typer(help="Training utilities for Financial Phrase Bank")
 
-
-@app.command("train")
-def train_cmd(
-    path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
-    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement", help="Agreement split"),
-    epochs: int = typer.Option(3, "--epochs"),
-    batch_size: int = typer.Option(32, "--batch-size"),
-    lr: float = typer.Option(1e-3, "--lr"),
-    num_workers: int = typer.Option(2, "--num-workers"),
-    pin_memory: bool = typer.Option(True, "--pin-memory"),
-    persistent_workers: bool = typer.Option(True, "--persistent-workers"),
-    prefetch_factor: Optional[int] = typer.Option(2, "--prefetch-factor"),
-    save_path: Optional[str] = typer.Option(None, "--save-path", help="Where to save the model"),
-):
-    """Train the text sentiment model on Financial Phrase Bank."""
-    train_phrasebank(
-        root_path=path,
-        agreement=agreement,
-        epochs=epochs,
-        batch_size=batch_size,
-        lr=lr,
-        num_workers=num_workers,
-        pin_memory=pin_memory,
-        persistent_workers=persistent_workers,
-        prefetch_factor=prefetch_factor,
-        save_path=save_path,
-    )
+    @app.command("train")
+    def train_cmd(
+        path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
+        agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement", help="Agreement split"),
+        epochs: int = typer.Option(3, "--epochs"),
+        batch_size: int = typer.Option(32, "--batch-size"),
+        lr: float = typer.Option(1e-3, "--lr"),
+        num_workers: int = typer.Option(2, "--num-workers"),
+        pin_memory: bool = typer.Option(True, "--pin-memory"),
+        persistent_workers: bool = typer.Option(True, "--persistent-workers"),
+        prefetch_factor: Optional[int] = typer.Option(2, "--prefetch-factor"),
+        save_path: Optional[str] = typer.Option(None, "--save-path", help="Where to save the model"),
+    ):
+        """Train the text sentiment model on Financial Phrase Bank."""
+        train_phrasebank(
+            root_path=path,
+            agreement=agreement,
+            epochs=epochs,
+            batch_size=batch_size,
+            lr=lr,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
+            save_path=save_path,
+        )
+else:
+    app = None  # type: ignore[assignment]
 
 
 if __name__ == "__main__":

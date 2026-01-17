@@ -1,8 +1,11 @@
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Literal
 
 import torch
-import typer
+try:
+    import typer
+except Exception:  # pragma: no cover
+    typer = None  # type: ignore[assignment]
 from torch.utils.data import DataLoader
 
 from project.data import FinancialPhraseBankDataset
@@ -38,7 +41,7 @@ def _metrics(preds: torch.Tensor, targets: torch.Tensor) -> Tuple[float, float, 
 
 def evaluate_phrasebank(
     root_path: str,
-    agreement: str = "AllAgree",
+    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
     batch_size: int = 64,
     num_workers: int = 2,
     pin_memory: bool = True,
@@ -90,29 +93,34 @@ def evaluate_phrasebank(
     print(f"accuracy={acc:.3f} precision_macro={prec:.3f} recall_macro={rec:.3f} f1_macro={f1:.3f}")
 
 
-app = typer.Typer(help="Evaluation utilities for Financial Phrase Bank")
+if typer is not None:
+    app = typer.Typer(help="Evaluation utilities for Financial Phrase Bank")
 
-
-@app.command("eval")
-def eval_cmd(
-    path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
-    agreement: str = typer.Option("AllAgree", "--agreement"),
-    batch_size: int = typer.Option(64, "--batch-size"),
-    num_workers: int = typer.Option(2, "--num-workers"),
-    pin_memory: bool = typer.Option(True, "--pin-memory"),
-    persistent_workers: bool = typer.Option(True, "--persistent-workers"),
-    model_path: Optional[str] = typer.Option(None, "--model-path", help="Path to saved model"),
-):
-    evaluate_phrasebank(
-        root_path=path,
-        agreement=agreement,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        pin_memory=pin_memory,
-        persistent_workers=persistent_workers,
-        model_path=model_path,
-    )
+    @app.command("eval")
+    def eval_cmd(
+        path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
+        agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement"),
+        batch_size: int = typer.Option(64, "--batch-size"),
+        num_workers: int = typer.Option(2, "--num-workers"),
+        pin_memory: bool = typer.Option(True, "--pin_memory"),
+        persistent_workers: bool = typer.Option(True, "--persistent-workers"),
+        model_path: Optional[str] = typer.Option(None, "--model-path", help="Path to saved model"),
+    ):
+        evaluate_phrasebank(
+            root_path=path,
+            agreement=agreement,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            model_path=model_path,
+        )
+else:
+    app = None  # type: ignore[assignment]
 
 
 if __name__ == "__main__":
-    app()
+    if typer is None:
+        print("Typer not installed. Install with: pip install typer")
+    else:
+        app()

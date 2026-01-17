@@ -2,7 +2,10 @@ from pathlib import Path
 from typing import Dict, List, Literal, Sequence, Tuple, Union
 
 import torch
-import typer
+try:
+    import typer
+except Exception:  # pragma: no cover
+    typer = None  # type: ignore[assignment]
 from torch.utils.data import Dataset
 
 
@@ -42,7 +45,11 @@ class FinancialPhraseBankDataset(Dataset):
 
         self.sentences: List[str] = []
         self.labels: List[int] = []
-        for line in file_path.read_text(encoding="utf-8").splitlines():
+        try:
+            content = file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            content = file_path.read_text(encoding="latin-1")
+        for line in content.splitlines():
             line = line.strip()
             if not line or "@" not in line:
                 continue
@@ -140,4 +147,8 @@ def preprocess(
 
 
 if __name__ == "__main__":
-    typer.run(preprocess)
+    if typer is None:
+        print("Typer not installed. Install with: pip install typer")
+        print("Run via: python -c \"from project.data import preprocess; preprocess('<data_path>','data/processed')\"")
+    else:
+        typer.run(preprocess)
