@@ -1,8 +1,10 @@
 import os
-from typing import Tuple, Optional
+from pathlib import Path
+from typing import Optional
 
 import torch
 from torch.utils.data import DataLoader
+import typer
 
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
@@ -18,9 +20,17 @@ def train_phrasebank(
     pin_memory: bool = True,
     persistent_workers: bool = True,
     prefetch_factor: Optional[int] = 2,
+    save_path: Optional[str] = None,
 ) -> None:
     ds = FinancialPhraseBankDataset(root_path, agreement=agreement)  # e.g., F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0
-    vocab = ds.build_vocab(min_freq=1)
+    # Reuse cached vocab if available
+    cache_file = Path("data/processed") / f"phrasebank_{agreement}.pt"
+    if cache_file.exists():
+        cached = torch.load(cache_file)
+        vocab = cached.get("vocab") or ds.build_vocab(min_freq=1)
+        ds.vocab = vocab
+    else:
+        vocab = ds.build_vocab(min_freq=1)
     loader = DataLoader(
         ds,
         batch_size=batch_size,
@@ -55,12 +65,48 @@ def train_phrasebank(
         acc = correct / max(total, 1)
         print(f"phrasebank({agreement}) | epoch={epoch+1} loss={epoch_loss:.4f} acc={acc:.3f}")
 
+    # Save model
+    out_path = Path(save_path) if save_path else Path("models") / f"text_model_{agreement}.pt"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"state_dict": model.state_dict(), "vocab_size": len(vocab)}, out_path)
+    print(f"Saved model to {out_path}")
+
+
+app = typer.Typer(help="Training utilities for Financial Phrase Bank")
+
+
+@app.command("train")
+def train_cmd(
+    path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
+    agreement: str = typer.Option("AllAgree", "--agreement", help="Agreement split"),
+    epochs: int = typer.Option(3, "--epochs"),
+    batch_size: int = typer.Option(32, "--batch-size"),
+    lr: float = typer.Option(1e-3, "--lr"),
+    num_workers: int = typer.Option(2, "--num-workers"),
+    pin_memory: bool = typer.Option(True, "--pin-memory"),
+    persistent_workers: bool = typer.Option(True, "--persistent-workers"),
+    prefetch_factor: Optional[int] = typer.Option(2, "--prefetch-factor"),
+    save_path: Optional[str] = typer.Option(None, "--save-path", help="Where to save the model"),
+):
+    """Train the text sentiment model on Financial Phrase Bank."""
+    train_phrasebank(
+        root_path=path,
+        agreement=agreement,
+        epochs=epochs,
+        batch_size=batch_size,
+        lr=lr,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        prefetch_factor=prefetch_factor,
+        save_path=save_path,
+    )
+
 
 if __name__ == "__main__":
+    # If env var is set, allow quick start; otherwise use CLI
     path = os.environ.get("PHRASEBANK_PATH")
-    if not path:
-        print("Set PHRASEBANK_PATH to the dataset root, e.g.,")
-        print(r"  set PHRASEBANK_PATH=F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0")
-        print("Then run: python src\\project\\train.py")
-    else:
+    if path:
         train_phrasebank(path, agreement="AllAgree", epochs=3, batch_size=32, lr=1e-3)
+    else:
+        app()
