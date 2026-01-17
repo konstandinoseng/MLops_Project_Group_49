@@ -2,17 +2,6 @@ from torch import nn
 import torch
 
 
-class Model(nn.Module):
-    """Simple numeric regression model (1 -> 1)."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.layer = nn.Linear(1, 1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.layer(x)
-
-
 class TextSentimentModel(nn.Module):
     """Bag-of-words style text classifier using average embeddings.
 
@@ -39,11 +28,6 @@ class TextSentimentModel(nn.Module):
 
 
 if __name__ == "__main__":
-    # Numeric sanity check
-    model = Model()
-    x = torch.rand(4, 1)
-    print(f"Numeric model output shape: {model(x).shape}")
-
     # Text model sanity check
     text_model = TextSentimentModel(vocab_size=100)
     x_tokens = torch.randint(0, 99, (4, 10))
