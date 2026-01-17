@@ -1,10 +1,13 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 import torch
 from torch.utils.data import DataLoader
-import typer
+try:
+    import typer  # CLI
+except Exception:  # pragma: no cover
+    typer = None  # type: ignore[assignment]
 
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
@@ -12,7 +15,7 @@ from project.model import TextSentimentModel
 
 def train_phrasebank(
     root_path: str,
-    agreement: str = "AllAgree",
+    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
     epochs: int = 2,
     batch_size: int = 32,
     lr: float = 1e-3,
@@ -80,7 +83,7 @@ app = typer.Typer(help="Training utilities for Financial Phrase Bank")
 @app.command("train")
 def train_cmd(
     path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
-    agreement: str = typer.Option("AllAgree", "--agreement", help="Agreement split"),
+    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement", help="Agreement split"),
     epochs: int = typer.Option(3, "--epochs"),
     batch_size: int = typer.Option(32, "--batch-size"),
     lr: float = typer.Option(1e-3, "--lr"),
@@ -106,9 +109,13 @@ def train_cmd(
 
 
 if __name__ == "__main__":
-    # If env var is set, allow quick start; otherwise use CLI
+    # If env var is set, allow quick start; otherwise use CLI (when typer is available)
     path = os.environ.get("PHRASEBANK_PATH")
     if path:
         train_phrasebank(path, agreement="AllAgree", epochs=3, batch_size=32, lr=1e-3)
     else:
-        app()
+        if typer is None:
+            print("Typer not installed. Install with: pip install typer")
+            print("Or set PHRASEBANK_PATH and run this file directly.")
+        else:
+            app()
