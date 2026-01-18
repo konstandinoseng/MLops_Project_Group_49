@@ -1,0 +1,13 @@
+data:
+  root_path: "data/raw"  # Default path
+  agreement: "AllAgree"
+
+training:
+  epochs: 3
+  batch_size: 32
+  lr: 1e-3
+  num_workers: 2
+  pin_memory: True
+  persistent_workers: True
+  prefetch_factor: 2
+  save_path: null

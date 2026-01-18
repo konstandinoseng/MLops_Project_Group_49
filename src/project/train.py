@@ -11,6 +11,9 @@ except Exception:  # pragma: no cover
 
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
+import hydra
+from omegaconf import DictConfig, OmegaConf
+from hydra import compose, initialize
 
 
 def train_phrasebank(
@@ -82,42 +85,37 @@ if typer is not None:
 
     @app.command("train")
     def train_cmd(
-        path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
-        agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement", help="Agreement split"),
-        epochs: int = typer.Option(3, "--epochs"),
-        batch_size: int = typer.Option(32, "--batch-size"),
-        lr: float = typer.Option(1e-3, "--lr"),
-        num_workers: int = typer.Option(2, "--num-workers"),
-        pin_memory: bool = typer.Option(True, "--pin-memory/--no-pin-memory"),
-        persistent_workers: bool = typer.Option(True, "--persistent-workers/--no-persistent-workers"),
-        prefetch_factor: Optional[int] = typer.Option(2, "--prefetch-factor"),
-        save_path: Optional[str] = typer.Option(None, "--save-path", help="Where to save the model"),
+        epochs: Optional[int] = typer.Option(None),
+        lr: Optional[float] = typer.Option(None),
+        batch_size: Optional[int] = typer.Option(None),
     ):
-        """Train the text sentiment model on Financial Phrase Bank."""
-        train_phrasebank(
-            root_path=path,
-            agreement=agreement,
-            epochs=epochs,
-            batch_size=batch_size,
-            lr=lr,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-            persistent_workers=persistent_workers,
-            prefetch_factor=prefetch_factor,
-            save_path=save_path,
-        )
-else:
-    app = None  # type: ignore[assignment]
+        # FIX: Point to the root configs folder from src/project/
+        with initialize(version_base=None, config_path="../../configs"):
+            cfg = compose(config_name="config")
+            
+        if epochs: cfg.training.epochs = epochs
+        if lr: cfg.training.lr = lr
+        if batch_size: cfg.training.batch_size = batch_size
 
+        print(f"Running with config:\n{OmegaConf.to_yaml(cfg)}")
+
+        train_phrasebank(
+            root_path=cfg.data.root_path,
+            agreement=cfg.data.agreement,
+            epochs=cfg.training.epochs,
+            batch_size=cfg.training.batch_size,
+            lr=cfg.training.lr,
+            num_workers=cfg.training.num_workers,
+            pin_memory=cfg.training.pin_memory,
+            persistent_workers=cfg.training.persistent_workers,
+            prefetch_factor=cfg.training.prefetch_factor,
+            save_path=cfg.training.save_path,
+        )
+
+def main():
+    """Entry point for uv run train"""
+    if app:
+        app()
 
 if __name__ == "__main__":
-    # If env var is set, allow quick start; otherwise use CLI (when typer is available)
-    path = os.environ.get("PHRASEBANK_PATH")
-    if path:
-        train_phrasebank(path, agreement="AllAgree", epochs=3, batch_size=32, lr=1e-3)
-    else:
-        if typer is None or app is None:
-            print("Typer not installed. Install with: pip install typer")
-            print("Or set PHRASEBANK_PATH and run this file directly.")
-        else:
-            app()
+    main()
