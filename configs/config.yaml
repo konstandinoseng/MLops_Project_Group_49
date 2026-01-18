@@ -1,5 +1,5 @@
 data:
-  root_path: "data/raw"  # Default path
+  root_path: "data/raw" 
   agreement: "AllAgree"
 
 training:
