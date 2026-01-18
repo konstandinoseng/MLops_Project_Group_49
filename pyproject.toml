@@ -38,7 +38,7 @@ dependencies = [
 ]
 
 [project.scripts]
-train = "project.train:main"
+train = "project.train:app"
 predict = "project.predict:main"
 
 [dependency-groups]
