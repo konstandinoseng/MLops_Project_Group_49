@@ -4,25 +4,39 @@ build-backend = "uv_build"
 
 [project]
 name = "project"
-version = "0.0.1"
-description = "A short description of the project."
+version = "0.1.0"
+description = "Financial Phrasebank Sentiment Analysis - Group 49"
 authors = [
-  { name = "Group_49", email = "your@email.com" },
+  { name = "Group_49", email = "arham.noman.50@gmail.com, lykostratisk@gmail.com, chinmaydongarkar@gmail.com, konstandinos.eng@gmail.com, nickiliak847@gmail.com" },
 ]
 license = { file = "LICENSE" }
-keywords = ["machine learning", "MLOps"]
+keywords = ["machine learning", "MLOps", "NLP", "Sentiment Analysis", "financial-phrasebank"]
+readme = "README.md"
+requires-python = ">=3.12"
+
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
 ]
-readme = "README.md"
-requires-python = ">=3.12"
+
 dependencies = [
     "fastapi==0.115.6",
     "torch==2.6.0",
     "typer==0.15.1",
     "uvicorn==0.34.0",
+    "datasets>=3.2.0",
+    "transformers>=4.40.0",
+    "click>=8.1.0",
+    "docker==7.1.0",
+    "hydra-core==1.3.2",
+    "dvc[gs]==3.59.0",
+    "google-cloud-storage",
+    "locust==2.33.0",
 ]
+
+[project.scripts]
+train = "project.train:main"
+predict = "project.predict:main"
 
 [dependency-groups]
 dev = [
@@ -36,14 +50,9 @@ dev = [
     "mkdocstrings-python==1.12.2",
 ]
 
-
 [tool.uv.sources]
-torch = [
-    { index = "pytorch-cpu" },
-]
-torchvision = [
-    { index = "pytorch-cpu" },
-]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
