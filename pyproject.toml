@@ -33,6 +33,8 @@ dependencies = [
     "dvc[gs]==3.59.0",
     "google-cloud-storage",
     "locust==2.33.0",
+    "invoke>=2.2.0",
+    "dvc-gdrive>=3.0.1",
 ]
 
 [project.scripts]
