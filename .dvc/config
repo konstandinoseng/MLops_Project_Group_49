@@ -1,4 +1,4 @@
 [core]
     remote = myremote
 ['remote "myremote"']
-    url = gs://group49/dvc_storage
+    url = gs://mlops-group49-bucket
