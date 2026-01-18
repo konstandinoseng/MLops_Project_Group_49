@@ -1,9 +1,9 @@
-import os
 from pathlib import Path
 from typing import Optional, Literal
 
 import torch
 from torch.utils.data import DataLoader
+
 try:
     import typer  # CLI
 except Exception:  # pragma: no cover
@@ -11,8 +11,7 @@ except Exception:  # pragma: no cover
 
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
-import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 from hydra import compose, initialize
 
 
@@ -28,7 +27,9 @@ def train_phrasebank(
     prefetch_factor: Optional[int] = 2,
     save_path: Optional[str] = None,
 ) -> None:
-    ds = FinancialPhraseBankDataset(root_path, agreement=agreement)  # e.g., F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0
+    ds = FinancialPhraseBankDataset(
+        root_path, agreement=agreement
+    )  # e.g., F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0
     # Reuse cached vocab if available
     cache_file = Path("data/processed") / f"phrasebank_{agreement}.pt"
     if cache_file.exists():
@@ -92,10 +93,13 @@ if typer is not None:
         # FIX: Point to the root configs folder from src/project/
         with initialize(version_base=None, config_path="../../configs"):
             cfg = compose(config_name="config")
-            
-        if epochs: cfg.training.epochs = epochs
-        if lr: cfg.training.lr = lr
-        if batch_size: cfg.training.batch_size = batch_size
+
+        if epochs:
+            cfg.training.epochs = epochs
+        if lr:
+            cfg.training.lr = lr
+        if batch_size:
+            cfg.training.batch_size = batch_size
 
         print(f"Running with config:\n{OmegaConf.to_yaml(cfg)}")
 
@@ -112,10 +116,12 @@ if typer is not None:
             save_path=cfg.training.save_path,
         )
 
+
 def main():
     """Entry point for uv run train"""
     if app:
         app()
+
 
 if __name__ == "__main__":
     main()

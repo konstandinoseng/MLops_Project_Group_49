@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, Tuple, Literal
 
 import torch
+
 try:
     import typer
 except Exception:  # pragma: no cover

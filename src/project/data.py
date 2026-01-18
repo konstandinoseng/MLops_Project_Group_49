@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, List, Literal, Sequence, Tuple, Union
 
 import torch
+
 try:
     import typer
 except Exception:  # pragma: no cover
@@ -131,9 +132,7 @@ def preprocess(
     """
     print("Preprocessing Financial Phrase Bank...")
     data_root = Path(data_path)
-    required_present = any(
-        (data_root / fname).exists() for fname in FinancialPhraseBankDataset.AGREEMENTS.values()
-    )
+    required_present = any((data_root / fname).exists() for fname in FinancialPhraseBankDataset.AGREEMENTS.values())
     if not required_present:
         raise FileNotFoundError(
             "No Financial Phrase Bank files found. Expected one of: "
@@ -141,9 +140,7 @@ def preprocess(
         )
     ds = FinancialPhraseBankDataset(data_root, agreement=agreement)
     ds.preprocess(output_folder, agreement=agreement)
-    print(
-        f"Saved encoded phrasebank ({agreement}) to {Path(output_folder) / f'phrasebank_{agreement}.pt'}"
-    )
+    print(f"Saved encoded phrasebank ({agreement}) to {Path(output_folder) / f'phrasebank_{agreement}.pt'}")
 
 
 if __name__ == "__main__":
