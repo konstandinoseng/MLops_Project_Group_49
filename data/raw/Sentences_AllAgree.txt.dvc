@@ -1,0 +1,5 @@
+outs:
+- md5: cdf72aba52c3eee867feed9d8b51bd3f
+  size: 299636
+  hash: md5
+  path: Sentences_AllAgree.txt
