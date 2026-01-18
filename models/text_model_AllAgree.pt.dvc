@@ -1,0 +1,5 @@
+outs:
+- md5: b58b64b54ab45927785f56f8aec61e8c
+  size: 1800104
+  hash: md5
+  path: text_model_AllAgree.pt
