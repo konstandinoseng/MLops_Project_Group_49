@@ -13,7 +13,9 @@ from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 from omegaconf import OmegaConf
 from hydra import compose, initialize
-
+#adding wandb
+import wandb
+from project.evaluate import *
 
 def train_phrasebank(
     root_path: str,
@@ -54,7 +56,10 @@ def train_phrasebank(
     model = TextSentimentModel(vocab_size=len(vocab), embedding_dim=64, num_classes=3)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
-
+    # Initialize wandb
+    wandb.init(
+        project= "Group_49",
+        config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement})
     model.train()
     for epoch in range(epochs):
         epoch_loss = 0.0
@@ -73,6 +78,7 @@ def train_phrasebank(
             total += int(targets.size(0))
         acc = correct / max(total, 1)
         print(f"phrasebank({agreement}) | epoch={epoch+1} loss={epoch_loss:.4f} acc={acc:.3f}")
+        wandb.log({"epoch": epoch + 1, "loss": epoch_loss, "accuracy": acc})
 
     # Save model
     out_path = Path(save_path) if save_path else Path("models") / f"text_model_{agreement}.pt"
@@ -80,6 +86,29 @@ def train_phrasebank(
     torch.save({"state_dict": model.state_dict(), "vocab_size": len(vocab)}, out_path)
     print(f"Saved model to {out_path}")
 
+    eval_metrics = evaluate_phrasebank(
+        root_path=root_path,
+        agreement=agreement,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        model_path=str(out_path),
+    )
+
+    # Log eval metrics to the same run
+    wandb.log(eval_metrics)
+    wandb.summary.update(eval_metrics)
+
+    # Store eval metrics in a single-row table
+    eval_table = wandb.Table(
+        columns=list(eval_metrics.keys()),
+        data=[list(eval_metrics.values())],
+    )
+    wandb.log({"eval/final_metrics_table": eval_table})
+    artifact = wandb.Artifact(name=f"text_model_{agreement}", type="model")
+    artifact.add_file(str(out_path))
+    wandb.log_artifact(artifact)
     return "Training Completed"
 
 

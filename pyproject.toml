@@ -36,6 +36,11 @@ dependencies = [
     "invoke>=2.2.0",
     "dvc-gdrive>=3.0.1",
     "pathspec<0.12.0",
+    "dvc-gs>=3.0.2",
+    "torch-tb-profiler>=0.4.3",
+    "tensorboard>=2.20.0",
+    "streamlit>=1.53.0",
+    "wandb>=0.24.0",
 ]
 
 [project.scripts]
