@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 
+import wandb
 
 def _metrics(preds: torch.Tensor, targets: torch.Tensor) -> Tuple[float, float, float, float]:
     """Return accuracy, precision (macro), recall (macro), f1 (macro)."""
@@ -91,9 +92,17 @@ def evaluate_phrasebank(
     targets_t = torch.cat(all_targets) if all_targets else torch.empty(0, dtype=torch.long)
 
     acc, prec, rec, f1 = _metrics(preds_t, targets_t)
-    print(f"accuracy={acc:.3f} precision_macro={prec:.3f} recall_macro={rec:.3f} f1_macro={f1:.3f}")
-
-
+    metrics = {
+        "eval/accuracy": acc,
+        "eval/precision_macro": prec,
+        "eval/recall_macro": rec,
+        "eval/f1_macro": f1,
+    }
+    print(
+        f"accuracy={acc:.3f} precision_macro={prec:.3f} "
+        f"recall_macro={rec:.3f} f1_macro={f1:.3f}"
+    )
+    return metrics
 if typer is not None:
     app = typer.Typer(help="Evaluation utilities for Financial Phrase Bank")
 
