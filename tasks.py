@@ -51,3 +51,9 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+
+
+@task
+def load_test(ctx: Context) -> None:
+    """Run load tests using Locust."""
+    ctx.run("uv run locust -f tests/performancetests/locustfile.py --host http://127.0.0.1:8000", echo=True, pty=not WINDOWS)
