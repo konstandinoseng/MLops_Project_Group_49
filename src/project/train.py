@@ -80,6 +80,8 @@ def train_phrasebank(
     torch.save({"state_dict": model.state_dict(), "vocab_size": len(vocab)}, out_path)
     print(f"Saved model to {out_path}")
 
+    return "Training Completed"
+
 
 if typer is not None:
     app = typer.Typer(help="Training utilities for Financial Phrase Bank")
