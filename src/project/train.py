@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional, Literal
+from unittest import loader
 
 import torch
 from torch.utils.data import DataLoader
@@ -17,6 +18,8 @@ from hydra import compose, initialize
 import wandb
 from project.evaluate import *
 
+#add torch profiler
+from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
 def train_phrasebank(
     root_path: str,
     agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
@@ -31,7 +34,7 @@ def train_phrasebank(
 ) -> None:
     ds = FinancialPhraseBankDataset(
         root_path, agreement=agreement
-    )  # e.g., F:\Business Analytics Dk\MLOps\FinancialPhraseBank-v1.0
+    ) 
     # Reuse cached vocab if available
     cache_file = Path("data/processed") / f"phrasebank_{agreement}.pt"
     if cache_file.exists():
@@ -52,10 +55,10 @@ def train_phrasebank(
     # Set prefetch_factor only when num_workers > 0 and a valid int is provided
     if num_workers > 0 and prefetch_factor is not None:
         loader.prefetch_factor = int(prefetch_factor)
-
     model = TextSentimentModel(vocab_size=len(vocab), embedding_dim=64, num_classes=3)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
+
     # Initialize wandb
     wandb.init(
         project= "Group_49",
@@ -85,7 +88,7 @@ def train_phrasebank(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": model.state_dict(), "vocab_size": len(vocab)}, out_path)
     print(f"Saved model to {out_path}")
-
+    # Evaluate the model
     eval_metrics = evaluate_phrasebank(
         root_path=root_path,
         agreement=agreement,

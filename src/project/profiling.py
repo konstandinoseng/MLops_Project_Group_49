@@ -17,7 +17,7 @@ class ProfilerConfig:
     log_root: str = "log"
     # Subfolder name (e.g., "train", "inference", "data")
     run_name: str = "run"
-    # CPU only by default; add CUDA if available and desired
+    # CPU default
     use_cuda: bool = False
 
     # What to record
@@ -64,7 +64,7 @@ def torch_profile(cfg: ProfilerConfig):
     - runs torch.profiler.profile with memory + shapes
     - writes TensorBoard trace files into ./log/<run_name>/
     - exports a chrome trace trace.json
-    - prints tables like in the DTU exercise
+    - prints tables to console
 
     Usage:
         with torch_profile(cfg) as prof:
@@ -91,11 +91,7 @@ def torch_profile(cfg: ProfilerConfig):
     ) as prof:
         yield prof
 
-    # Export chrome trace (single file) for chrome://tracing
-    trace_path = out_dir / "trace.json"
-    prof.export_chrome_trace(str(trace_path))
-
-    # Print tables to console
+    # Print tables to console (trace already saved by tensorboard_trace_handler)
     _print_tables(prof, cfg)
 
 

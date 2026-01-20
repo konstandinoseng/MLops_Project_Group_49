@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional, Tuple, Literal
-
+import click
 import torch
 
 try:
@@ -12,8 +12,11 @@ from torch.utils.data import DataLoader
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 
-import wandb
-
+from project.profiling import config_from_env, torch_profile
+#run profiling with:
+#$env:TORCH_PROFILER="1"; uv run python -m project.evaluate --path "data\raw" --agreement "AllAgree"
+#uv run tensorboard --logdir=./log
+#open http://localhost:6006/ in browser
 def _metrics(preds: torch.Tensor, targets: torch.Tensor) -> Tuple[float, float, float, float]:
     """Return accuracy, precision (macro), recall (macro), f1 (macro)."""
     num_classes = int(targets.max().item()) + 1 if targets.numel() > 0 else 3
@@ -82,12 +85,23 @@ def evaluate_phrasebank(
 
     all_preds = []
     all_targets = []
+    cfg = config_from_env(default_run_name=f"phrasebank_eval_{agreement}", steps=30)
+    # Evaluation loop with profiling
     with torch.no_grad():
-        for inputs, targets in loader:
-            logits = model(inputs)
-            preds = logits.argmax(dim=1)
-            all_preds.append(preds)
-            all_targets.append(targets)
+        with torch_profile(cfg) as prof:
+            for step, (inputs, targets) in enumerate(loader):
+                logits = model(inputs)
+                preds = logits.argmax(dim=1)
+                all_preds.append(preds)
+                all_targets.append(targets)
+
+                # profiler iteration boundary
+                if prof is not None:
+                    prof.step()
+
+                # cap profiling length (strongly recommended)
+                if prof is not None and step + 1 >= cfg.steps:
+                    break
     preds_t = torch.cat(all_preds) if all_preds else torch.empty(0, dtype=torch.long)
     targets_t = torch.cat(all_targets) if all_targets else torch.empty(0, dtype=torch.long)
 
@@ -106,10 +120,14 @@ def evaluate_phrasebank(
 if typer is not None:
     app = typer.Typer(help="Evaluation utilities for Financial Phrase Bank")
 
-    @app.command("eval")
+    @app.command()
     def eval_cmd(
         path: str = typer.Option(..., "--path", help="Root path to Financial Phrase Bank"),
-        agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = typer.Option("AllAgree", "--agreement"),
+        agreement: str = typer.Option(
+            "AllAgree",
+            "--agreement",
+            click_type=click.Choice(["AllAgree", "75Agree", "66Agree", "50Agree"]),
+        ),
         batch_size: int = typer.Option(64, "--batch-size"),
         num_workers: int = typer.Option(2, "--num-workers"),
         pin_memory: bool = typer.Option(True, "--pin-memory/--no-pin-memory"),
@@ -118,7 +136,7 @@ if typer is not None:
     ):
         evaluate_phrasebank(
             root_path=path,
-            agreement=agreement,
+            agreement=agreement,  # type: ignore[arg-type]
             batch_size=batch_size,
             num_workers=num_workers,
             pin_memory=pin_memory,
