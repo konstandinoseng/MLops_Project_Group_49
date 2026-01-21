@@ -124,7 +124,12 @@ class FinancialPhraseBankDataset(Dataset):
 def preprocess(
     data_path: str,
     output_folder: str,
-    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
+    agreement: str = typer.Option(
+        "AllAgree",
+        "--agreement",
+        "-a",
+        help="Agreement level: AllAgree, 75Agree, 66Agree, or 50Agree",
+    ),
 ) -> None:
     """CLI entry to preprocess Financial Phrase Bank data only.
 
