@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, constant
+from locust import HttpUser, task, between
 
 class SentimentUser(HttpUser):
     wait_time = between(1, 3)  # Simulate user thinking time 1-3 seconds

@@ -8,5 +8,6 @@ def test_root_health_check():
 	response = client.get("/")
 	assert response.status_code == 200
 	data = response.json()
-	assert data["message"] == "OK"
-	assert data["status-code"] == 200
+	assert data["message"] == "Financial Sentiment API"
+	assert data["status"] == "OK"
+	assert data["status_code"] == 200
