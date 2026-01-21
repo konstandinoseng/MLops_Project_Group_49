@@ -19,7 +19,7 @@ except ImportError:
 
 from project.model import TextSentimentModel
 from project.inference.retrieval import extract_financial_sentences
-
+from project.inference.scraper import scrape_article
 
 # Sentiment labels
 SENTIMENT_LABELS: Dict[int, str] = {
@@ -191,7 +191,7 @@ class SentimentPredictor:
 
 
 def run_inference(
-    text: str,
+    url: str,
     model_path: Optional[str] = None,
     wandb_artifact: Optional[str] = None,
 ) -> Dict:
@@ -199,13 +199,15 @@ def run_inference(
     Full pipeline: retrieval + prediction.
 
     Args:
-        text: Raw article text (from fetcher)
+        url: URL of the article to analyze
         model_path: Local model path
         wandb_artifact: W&B artifact name
 
     Returns:
         Analysis results
     """
+    #step 0: Fetch article text
+    text = scrape_article(url)
     # Step 1: Retrieval - extract financial sentences
     sentences = extract_financial_sentences(text)
 
@@ -221,15 +223,10 @@ def run_inference(
 
 if __name__ == "__main__":
     # Example usage
-    sample_text = """
-    Apple Inc. reported quarterly revenue of $89.5 billion, an increase of 8% year over year.
-    The weather was nice today. iPhone sales exceeded analyst expectations, driving strong growth.
-    The company's gross margin improved to 43.3%, reflecting operational efficiency.
-    Investors remain optimistic about the company's future prospects.
-    The stock surged 5% in after-hours trading following the earnings beat.
-    """
+    sample_url = "https://finance.yahoo.com/news/5-things-know-stock-market-131502868.html"
+
 
     # Run with local model
-    result = run_inference(sample_text, model_path="models/text_model_AllAgree.pt")
+    result = run_inference(sample_url, model_path="models/text_model_AllAgree.pt")
     print(f"Overall sentiment: {result['overall_sentiment']}")
     print(f"Distribution: {result['sentiment_distribution']}")

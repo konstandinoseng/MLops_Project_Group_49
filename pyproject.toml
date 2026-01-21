@@ -41,6 +41,7 @@ dependencies = [
     "tensorboard>=2.20.0",
     "streamlit>=1.53.0",
     "wandb>=0.24.0",
+    "newspaper4k>=0.9.4.1",
 ]
 
 [project.scripts]
