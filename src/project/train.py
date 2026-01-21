@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Optional, Literal
-from unittest import loader
 
 import torch
 from torch.utils.data import DataLoader
@@ -17,10 +16,9 @@ from hydra import compose, initialize
 
 # adding wandb
 import wandb
-from project.evaluate import *
+from project.evaluate import evaluate_phrasebank
 
 # add torch profiler
-from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
 
 
 def train_phrasebank(

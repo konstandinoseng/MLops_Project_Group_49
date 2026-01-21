@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from http import HTTPStatus
-from omegaconf import OmegaConf
 from hydra import compose, initialize
 from .train import train_phrasebank
-from .evaluate import evaluate_phrasebank
 from pydantic import BaseModel
 
 app = FastAPI()

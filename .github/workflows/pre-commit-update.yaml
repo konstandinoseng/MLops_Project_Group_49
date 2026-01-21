@@ -32,9 +32,10 @@ jobs:
       - name: Run pre-commit autoupdate
         run: pre-commit autoupdate
 
-      - name: Auto-format with ruff
+      - name: Auto-fix and format with ruff
         run: |
           pip install ruff
+          ruff check . --fix
           ruff format .
 
       - name: Create Pull Request

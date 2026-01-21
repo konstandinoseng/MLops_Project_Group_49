@@ -2,7 +2,6 @@
 
 import streamlit as st
 import requests
-import json  #
 
 st.set_page_config(page_title="Finance Sentiment classification", layout="centered")
 

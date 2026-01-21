@@ -4,7 +4,6 @@ import os
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional
 
 import torch
 from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
