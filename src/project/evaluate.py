@@ -13,10 +13,12 @@ from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 
 from project.profiling import config_from_env, torch_profile
-#run profiling with:
-#$env:TORCH_PROFILER="1"; uv run python -m project.evaluate --path "data\raw" --agreement "AllAgree"
-#uv run tensorboard --logdir=./log
-#open http://localhost:6006/ in browser
+
+
+# run profiling with:
+# $env:TORCH_PROFILER="1"; uv run python -m project.evaluate --path "data\raw" --agreement "AllAgree"
+# uv run tensorboard --logdir=./log
+# open http://localhost:6006/ in browser
 def _metrics(preds: torch.Tensor, targets: torch.Tensor) -> Tuple[float, float, float, float]:
     """Return accuracy, precision (macro), recall (macro), f1 (macro)."""
     num_classes = int(targets.max().item()) + 1 if targets.numel() > 0 else 3
@@ -112,11 +114,10 @@ def evaluate_phrasebank(
         "eval/recall_macro": rec,
         "eval/f1_macro": f1,
     }
-    print(
-        f"accuracy={acc:.3f} precision_macro={prec:.3f} "
-        f"recall_macro={rec:.3f} f1_macro={f1:.3f}"
-    )
+    print(f"accuracy={acc:.3f} precision_macro={prec:.3f} " f"recall_macro={rec:.3f} f1_macro={f1:.3f}")
     return metrics
+
+
 if typer is not None:
     app = typer.Typer(help="Evaluation utilities for Financial Phrase Bank")
 

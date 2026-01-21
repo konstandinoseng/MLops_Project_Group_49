@@ -4,7 +4,6 @@ import os
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional
 
 import torch
 from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
@@ -22,10 +21,10 @@ class ProfilerConfig:
 
     # What to record
     record_shapes: bool = True
-    profile_memory: bool = True  # <- this is the argument you asked about
+    profile_memory: bool = True  # 
     with_stack: bool = False  # optional: adds call stacks (more overhead)
 
-    # Iterations: if you profile a loop, call prof.step() each iteration
+    # Iterations: if want to profile a loop, call prof.step() each iteration
     steps: int = 1
 
     # Console table config

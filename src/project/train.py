@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Optional, Literal
-from unittest import loader
 
 import torch
 from torch.utils.data import DataLoader
@@ -14,12 +13,14 @@ from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 from omegaconf import OmegaConf
 from hydra import compose, initialize
-#adding wandb
-import wandb
-from project.evaluate import *
 
-#add torch profiler
-from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
+# adding wandb
+import wandb
+from project.evaluate import evaluate_phrasebank
+
+# add torch profiler
+
+
 def train_phrasebank(
     root_path: str,
     agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
@@ -32,9 +33,7 @@ def train_phrasebank(
     prefetch_factor: Optional[int] = 2,
     save_path: Optional[str] = None,
 ) -> None:
-    ds = FinancialPhraseBankDataset(
-        root_path, agreement=agreement
-    ) 
+    ds = FinancialPhraseBankDataset(root_path, agreement=agreement)
     # Reuse cached vocab if available
     cache_file = Path("data/processed") / f"phrasebank_{agreement}.pt"
     if cache_file.exists():
@@ -60,9 +59,10 @@ def train_phrasebank(
     criterion = torch.nn.CrossEntropyLoss()
 
     # Initialize wandb
-    wandb.init(
-        project= "Group_49",
-        config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement})
+    wandb.init(entity="konstandinoseng-dtu",
+        project="Group_49",
+        config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement},
+    )
     model.train()
     for epoch in range(epochs):
         epoch_loss = 0.0
