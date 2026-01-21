@@ -59,7 +59,7 @@ def train_phrasebank(
     criterion = torch.nn.CrossEntropyLoss()
 
     # Initialize wandb
-    wandb.init(
+    wandb.init(entity="konstandinoseng-dtu",
         project="Group_49",
         config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement},
     )
