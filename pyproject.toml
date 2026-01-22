@@ -43,6 +43,8 @@ dependencies = [
     "wandb>=0.24.0",
     "newspaper4k>=0.9.4.1",
     "matplotlib>=3.10.8",
+    "pytorch-lightning>=2.0.0",
+    "torchmetrics>=1.0.0",
 ]
 
 [project.scripts]

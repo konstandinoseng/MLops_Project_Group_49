@@ -1,3 +1,8 @@
+#################################################################################
+# With pytorch lightning evaluate is run from validation in model.py therefore  #
+# this script is deprecated I have kept it here for legacy reasons              #
+#################################################################################
+
 from pathlib import Path
 from typing import Optional, Tuple, Literal
 import click
