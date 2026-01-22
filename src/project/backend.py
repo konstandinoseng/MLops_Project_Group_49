@@ -3,41 +3,10 @@ from pydantic import BaseModel, HttpUrl
 from http import HTTPStatus
 from .inference.inference import run_inference
 
-from contextlib import asynccontextmanager
-import torch
-from pathlib import Path
-from .model import TextSentimentModel
-
-# Global model variable
-model_artifact = {}
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Load model on startup
-    # Use the specific model file we know exists
-    model_path = Path("models/text_model_AllAgree.pt")
-    if model_path.exists():
-        checkpoint = torch.load(model_path)
-        # Fallback if vocab_size not in checkpoint
-        vocab_size = checkpoint.get("vocab_size", 20000) 
-        
-        model = TextSentimentModel(vocab_size=vocab_size)
-        model.load_state_dict(checkpoint["state_dict"])
-        model.eval()
-        model_artifact["model"] = model
-        print(f"Model loaded from {model_path}")
-    else:
-        print("Warning: Model file not found. Prediction endpoint will fail.")
-    
-    yield
-    # Clean up on shutdown
-    model_artifact.clear()
-
 app = FastAPI(
     title="Financial Sentiment API",
     description="Analyze financial article sentiment using AI",
     version="1.0.0",
-    lifespan=lifespan
 )
 
 
@@ -47,6 +16,8 @@ class InferenceRequest(BaseModel):
 
     url: HttpUrl
     """URL of the financial article to analyze"""
+
+    model_path: str = "models/text_model_AllAgree.pt"
 
     wandb_artifact: str = "konstandinoseng-dtu/Group_49/text_model_AllAgree:latest"
     """W&B model artifact to use (optional)"""
@@ -95,7 +66,7 @@ def analyze_sentiment(params: InferenceRequest):
 
         result = run_inference(
             url=article_url,  # Pass full URL with https://
-            wandb_artifact=params.wandb_artifact,
+            model_path=params.model_path,
         )
 
         # Add URL to response

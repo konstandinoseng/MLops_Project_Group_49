@@ -43,7 +43,7 @@ st.markdown(
 st.title("📊 Financial Sentiment Analyzer")
 st.markdown("Analyze the sentiment of financial news articles using AI")
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "https://simple-gcp-app-314998984110.europe-north2.run.app/"
 
 # Input Section
 st.header("Input Article")

@@ -1,7 +1,11 @@
-FROM ghcr.io/astral-sh/uv:python3.12-alpine AS base
+FROM python:3.12-slim AS base
+
+RUN pip install uv
 
 COPY uv.lock uv.lock
 COPY pyproject.toml pyproject.toml
+COPY LICENSE LICENSE
+COPY README.md README.md
 
 RUN uv sync --frozen --no-install-project
 
@@ -9,4 +13,5 @@ COPY src src/
 
 RUN uv sync --frozen
 
-ENTRYPOINT ["uv", "run", "streamlit", "run", "src/project/frontend.py"]
+EXPOSE 8080
+CMD ["sh", "-c", "uv run streamlit run src/project/frontend.py --server.port ${PORT:-8080} --server.address 0.0.0.0"]
