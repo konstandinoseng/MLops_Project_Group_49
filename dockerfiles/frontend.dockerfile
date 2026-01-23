@@ -12,7 +12,6 @@ RUN uv sync --frozen --no-install-project
 COPY src src/
 
 RUN uv sync --frozen
-RUN uv run dvc pull
 
 EXPOSE 8080
 CMD ["sh", "-c", "uv run streamlit run src/project/frontend.py --server.port ${PORT:-8080} --server.address 0.0.0.0"]
