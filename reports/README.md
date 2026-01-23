@@ -460,7 +460,7 @@ We did not extensively use the Compute Engine for training because our model was
 >
 > Answer:
 
-We did not extensively train in the cloud using Compute Engine because the model training time was short (< 1 hour) and development primarily happened locally. However, the pipeline was containerized and could easily scale to cloud training if needed. The main bottleneck was data download, not compute.
+We did not require cloud training because our model is lightweight and trains quickly (< 1 hour) on local hardware, so we chose to develop locally. However, we architected our pipeline to be fully cloud-ready. By containerizing our training workflow with Docker and managing data via DVC we ensured that scaling to Vertex AI or Compute Engine would only require deploying our existing images. So, we could do it if we needed to.
 
 ## Deployment
 
@@ -529,17 +529,12 @@ Cloud Run provided serverless deployment with zero-management scaling.
 >
 > Answer:
 
-For functional testing: We used `pytest` with `httpx` to test all API endpoints, verifying:
-- Correct response format and status codes
-- Model predictions on known test cases
-- Error handling for invalid inputs
+For functional testing, we used `pytest` and `fastapi.testclient.TestClient` to verify our API endpoints. This allowed us to check for:
+- Correct response formats (JSON structure) and HTTP status codes (200 OK, etc.)
+- Accurate model predictions on known test cases
+- Proper error handling for invalid inputs
 
-For load testing: We used Locust to simulate concurrent users:
-- 100 concurrent users making requests
-- Results showed our API could handle ~50-100 requests/second locally
-- Cloud Run auto-scaling would handle production loads
-
-This validated our API was suitable for moderate-traffic applications.
+For load testing, we utilized `locust` to simulate traffic. We defined a `locustfile.py` to mimic user behavior and ran tests and check the performance. uv run locust -f tests/performancetests/locustfile.py --host http://localhost:8000. This confirmed our API is working locally.
 
 ### Question 26
 
@@ -585,12 +580,9 @@ This monitoring helps:
 
 We used minimal cloud credits because:
 - Most development was local due to small model/data size
-- Build and storage costs were negligible
-- Brief Cloud Run deployments for testing
+- Cloud Run deployments for model inference
 
-Most expensive service: Cloud Storage for data storage due to keeping multiple dataset versions.
-
-Overall cloud experience: Cloud infrastructure is powerful and scalable, but the learning curve for GCP services was steep. Having well-organized Docker containers and clear deployment scripts was essential. For ML projects, the cloud shines when handling large data volumes or compute-intensive training.
+Overall cloud experience: Cloud storage was the most expensive one and we used it for storing the dataset and images.
 
 ### Question 28
 
@@ -625,24 +617,21 @@ We implemented an additional drift detection component to monitor whether incomi
 >
 > Answer:
 
-Our architecture consists of several integrated components:
+The figure illustrates our automated MLOps workflow, flowing from local development to cloud deployment:
 
-**Local Development:** We start with local setup where we integrated Hydra for configuration management, DVC for data versioning, and Weights & Biases for experiment tracking. PyTorch Lightning handles model training boilerplate.
+1.  **Local Development**: The process begins locally, where code is written and tested. Tools like **Hydra** (configuration), **W&B** (experiment tracking), and **DVC** (data versioning) manage the experimental lifecycle.
+2.  **Version Control**: When code is ready, it is pushed to **GitHub**. This action acts as the primary trigger for our CI/CD pipeline.
+3.  **Continuous Integration & Delivery (CI/CD)**:
+    *   **GitHub Actions** automatically runs unit tests and linting checks to ensure code quality.
+    *   Simultaneously, **Google Cloud Build** is triggered to build a Docker container from the codebase.
+4.  **Artifact Storage**: The built Docker image is pushed to **Google Artifact Registry**, ensuring a versioned and secure location for our deployment artifacts.
+5.  **Deployment**: **Google Cloud Run** pulls the latest image from the Artifact Registry and deploys it as a serverless API.
+6.  **Data & Model Persistency**: Throughout this process, **Google Cloud Storage** acts as the backbone for persisting large datasets and trained model weights, accessible by both local developers (via DVC) and the deployed Cloud Run service.
+7.  **User Access**: Finally, the end-user interacts with the system by sending HTTP requests to the public endpoint provided by Cloud Run.
 
-**Version Control & CI/CD:** When code is committed and pushed to GitHub, it automatically triggers GitHub Actions workflows that run:
-- Unit tests (pytest)
-- Linting and formatting checks
-- Automated Docker image building
+![Workflow Diagram](figures/workflow.png)
 
-**Cloud Infrastructure:** The pipeline deploys to GCP using:
-- Cloud Storage for data/model artifacts (versioned with DVC)
-- Artifact Registry for Docker images
-- Cloud Build for automated image builds
-- Cloud Run for serverless API deployment
 
-**Monitoring & Drift Detection:** Our deployed API logs predictions, and our drift detector monitors for data distribution shifts, comparing against reference training/validation sets.
-
-This end-to-end architecture ensures reproducibility, scalability, and maintainability throughout the ML lifecycle.
 
 ### Question 30
 
@@ -691,6 +680,3 @@ Our solutions involved reading documentation thoroughly, using community forums,
 All members contributed to code reviews via pull requests, API development and testing, Docker containerization, and GCP cloud infrastructure setup.
 
 We have used GitHub Copilot to help accelerate code writing and ChatGPT for debugging cloud configuration issues.
-
-
-
