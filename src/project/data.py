@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Literal, Sequence, Tuple, Union
+from typing import Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import torch
 
@@ -7,7 +7,13 @@ try:
     import typer
 except Exception:  # pragma: no cover
     typer = None  # type: ignore[assignment]
-from torch.utils.data import Dataset
+
+try:
+    import pytorch_lightning as pl
+except Exception:  # pragma: no cover
+    pl = None  # type: ignore[assignment]
+
+from torch.utils.data import Dataset, DataLoader, random_split
 
 
 SentimentLabel = Literal["negative", "neutral", "positive"]
@@ -146,6 +152,95 @@ def preprocess(
     ds = FinancialPhraseBankDataset(data_root, agreement=agreement)
     ds.preprocess(output_folder, agreement=agreement)
     print(f"Saved encoded phrasebank ({agreement}) to {Path(output_folder) / f'phrasebank_{agreement}.pt'}")
+
+
+# ============================================================================
+# PyTorch Lightning DataModule
+# ============================================================================
+
+if pl is not None:
+
+    class FinancialPhraseBankDataModule(pl.LightningDataModule):
+        """Lightning DataModule for Financial Phrase Bank dataset.
+
+        Handles train/val splitting and dataloader creation automatically.
+        """
+
+        def __init__(
+            self,
+            root_path: Union[str, Path],
+            agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
+            batch_size: int = 32,
+            num_workers: int = 2,
+            pin_memory: bool = True,
+            persistent_workers: bool = True,
+            val_split: float = 0.2,
+        ) -> None:
+            super().__init__()
+            self.root_path = Path(root_path)
+            self.agreement = agreement
+            self.batch_size = batch_size
+            self.num_workers = num_workers
+            self.pin_memory = pin_memory
+            self.persistent_workers = persistent_workers and num_workers > 0
+            self.val_split = val_split
+
+            self.train_dataset: Optional[Dataset] = None
+            self.val_dataset: Optional[Dataset] = None
+            self.vocab: Dict[str, int] = {}
+
+        def setup(self, stage: Optional[str] = None) -> None:
+            """Load dataset and create train/val split."""
+            full_dataset = FinancialPhraseBankDataset(self.root_path, agreement=self.agreement)
+
+            # Load vocab from cache if available
+            cache_file = Path("data/processed") / f"phrasebank_{self.agreement}.pt"
+            if cache_file.exists():
+                cached = torch.load(cache_file)
+                self.vocab = cached.get("vocab") or full_dataset.build_vocab(min_freq=1)
+                full_dataset.vocab = self.vocab
+            else:
+                self.vocab = full_dataset.build_vocab(min_freq=1)
+
+            # Split into train/val.
+            total_size = len(full_dataset)
+            val_size = int(total_size * self.val_split)
+            train_size = total_size - val_size
+
+            self.train_dataset, self.val_dataset = random_split(
+                full_dataset,
+                [train_size, val_size],
+                generator=torch.Generator().manual_seed(42),
+            )
+
+            # Store reference to full dataset for collate_fn
+            self._full_dataset = full_dataset
+
+        def train_dataloader(self) -> DataLoader:
+            return DataLoader(
+                self.train_dataset,
+                batch_size=self.batch_size,
+                shuffle=True,
+                collate_fn=self._full_dataset.collate_fn,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                persistent_workers=self.persistent_workers,
+            )
+
+        def val_dataloader(self) -> DataLoader:
+            return DataLoader(
+                self.val_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                collate_fn=self._full_dataset.collate_fn,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                persistent_workers=self.persistent_workers,
+            )
+
+        def get_vocab_size(self) -> int:
+            """Return vocabulary size for model initialization."""
+            return len(self.vocab)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,14 @@ try:
 except Exception:  # pragma: no cover
     typer = None  # type: ignore[assignment]
 
+try:
+    import pytorch_lightning as pl
+    from pytorch_lightning import Trainer
+    from pytorch_lightning.loggers import WandbLogger
+    from pytorch_lightning.callbacks import ModelCheckpoint
+except Exception:  # pragma: no cover
+    pl = None  # type: ignore[assignment]
+
 from project.data import FinancialPhraseBankDataset
 from project.model import TextSentimentModel
 from omegaconf import OmegaConf
@@ -19,6 +27,86 @@ import wandb
 from project.evaluate import evaluate_phrasebank
 
 # add torch profiler
+
+
+def train_phrasebank_lightning(
+    root_path: str,
+    agreement: Literal["AllAgree", "75Agree", "66Agree", "50Agree"] = "AllAgree",
+    epochs: int = 2,
+    batch_size: int = 32,
+    lr: float = 1e-3,
+    num_workers: int = 2,
+    pin_memory: bool = True,
+    persistent_workers: bool = True,
+    prefetch_factor: Optional[int] = 2,
+    save_path: Optional[str] = None,
+    val_split: float = 0.2,
+) -> str:
+    """Train using PyTorch Lightning with automatic validation and logging."""
+    from project.data import FinancialPhraseBankDataModule
+    from project.model import TextSentimentLightningModel
+
+    # Setup DataModule
+    datamodule = FinancialPhraseBankDataModule(
+        root_path=root_path,
+        agreement=agreement,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        val_split=val_split,
+    )
+    datamodule.setup()
+
+    # Setup Model
+    model = TextSentimentLightningModel(
+        vocab_size=datamodule.get_vocab_size(),
+        embedding_dim=64,
+        num_classes=3,
+        lr=lr,
+    )
+
+    # Setup logging and callbacks
+    wandb_logger = WandbLogger(
+        entity="konstandinoseng-dtu",
+        project="Group_49",
+        config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement},
+    )
+
+    out_path = Path(save_path) if save_path else Path("models") / f"text_model_{agreement}.pt"
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=out_path.parent,
+        filename=out_path.stem,
+        save_top_k=1,
+        monitor="val/loss",
+        mode="min",
+    )
+
+    # Train
+    trainer = Trainer(
+        max_epochs=epochs,
+        logger=wandb_logger,
+        callbacks=[checkpoint_callback],
+        enable_progress_bar=True,
+        log_every_n_steps=1,
+    )
+    trainer.fit(model, datamodule=datamodule)
+
+    # Save model in legacy format for compatibility
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {"state_dict": model.get_inner_model().state_dict(), "vocab_size": datamodule.get_vocab_size()},
+        out_path,
+    )
+    print(f"Saved model to {out_path}")
+
+    # Log final metrics and artifact to wandb
+    artifact = wandb.Artifact(name=f"text_model_{agreement}", type="model")
+    artifact.add_file(str(out_path))
+    wandb.log_artifact(artifact)
+
+    wandb.finish()
+    return "Training Completed"
 
 
 def train_phrasebank(
@@ -59,7 +147,8 @@ def train_phrasebank(
     criterion = torch.nn.CrossEntropyLoss()
 
     # Initialize wandb
-    wandb.init(entity="konstandinoseng-dtu",
+    wandb.init(
+        entity="konstandinoseng-dtu",
         project="Group_49",
         config={"epochs": epochs, "batch_size": batch_size, "learning_rate": lr, "agreement": agreement},
     )
@@ -123,6 +212,7 @@ if typer is not None:
         epochs: Optional[int] = typer.Option(None),
         lr: Optional[float] = typer.Option(None),
         batch_size: Optional[int] = typer.Option(None),
+        use_lightning: bool = typer.Option(True, "--lightning/--no-lightning", help="Use PyTorch Lightning trainer"),
     ):
         # FIX: Point to the root configs folder from src/project/
         with initialize(version_base=None, config_path="../../configs"):
@@ -137,18 +227,34 @@ if typer is not None:
 
         print(f"Running with config:\n{OmegaConf.to_yaml(cfg)}")
 
-        train_phrasebank(
-            root_path=cfg.data.root_path,
-            agreement=cfg.data.agreement,
-            epochs=cfg.training.epochs,
-            batch_size=cfg.training.batch_size,
-            lr=cfg.training.lr,
-            num_workers=cfg.training.num_workers,
-            pin_memory=cfg.training.pin_memory,
-            persistent_workers=cfg.training.persistent_workers,
-            prefetch_factor=cfg.training.prefetch_factor,
-            save_path=cfg.training.save_path,
-        )
+        if use_lightning and pl is not None:
+            print("Using PyTorch Lightning trainer...")
+            train_phrasebank_lightning(
+                root_path=cfg.data.root_path,
+                agreement=cfg.data.agreement,
+                epochs=cfg.training.epochs,
+                batch_size=cfg.training.batch_size,
+                lr=cfg.training.lr,
+                num_workers=cfg.training.num_workers,
+                pin_memory=cfg.training.pin_memory,
+                persistent_workers=cfg.training.persistent_workers,
+                prefetch_factor=cfg.training.prefetch_factor,
+                save_path=cfg.training.save_path,
+            )
+        else:
+            print("Using legacy trainer...")
+            train_phrasebank(
+                root_path=cfg.data.root_path,
+                agreement=cfg.data.agreement,
+                epochs=cfg.training.epochs,
+                batch_size=cfg.training.batch_size,
+                lr=cfg.training.lr,
+                num_workers=cfg.training.num_workers,
+                pin_memory=cfg.training.pin_memory,
+                persistent_workers=cfg.training.persistent_workers,
+                prefetch_factor=cfg.training.prefetch_factor,
+                save_path=cfg.training.save_path,
+            )
 
 
 def main():
