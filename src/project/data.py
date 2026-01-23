@@ -202,7 +202,7 @@ if pl is not None:
             else:
                 self.vocab = full_dataset.build_vocab(min_freq=1)
 
-            # Split into train/val
+            # Split into train/val.
             total_size = len(full_dataset)
             val_size = int(total_size * self.val_split)
             train_size = total_size - val_size
