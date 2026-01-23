@@ -56,13 +56,13 @@ will check the repositories and the code to verify your answers.
 * [x] Make sure that all team members have write access to the GitHub repository (M5)
 * [x] Create a dedicated environment for you project to keep track of your packages (M2)
 * [x] Create the initial file structure using cookiecutter with an appropriate template (M6)
-* [x] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
-* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
+* [x] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6) - **Arham Aziz Noman (s250173)**
+* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6) - **Arham Aziz Noman (s250173)**
 * [x] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
     `pyproject.toml`/`uv.lock` up-to-date with whatever dependencies that you are using (M2+M6)
 * [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
-* [x] Do a bit of code typing and remember to document essential parts of your code (M7)
-* [x] Setup version control for your data or part of your data (M8)
+* [x] Do a bit of code typing and remember to document essential parts of your code (M7) - **Arham Aziz Noman (s250173)**
+* [x] Setup version control for your data or part of your data (M8) - **Arham Aziz Noman (s250173)**
 * [x] Add command line interfaces and project commands to your code where it makes sense (M9)
 * [x] Construct one or multiple docker files for your code (M10)
 * [x] Build the docker files locally and make sure they work as intended (M10)
@@ -76,8 +76,8 @@ will check the repositories and the code to verify your answers.
 
 ### Week 2
 
-* [ ] Write unit tests related to the data part of your code (M16)
-* [ ] Write unit tests related to model construction and or model training (M16)
+* [x] Write unit tests related to the data part of your code (M16) - **Arham Aziz Noman (s250173)**
+* [x] Write unit tests related to model construction and or model training (M16) - **Arham Aziz Noman (s250173)**
 * [ ] Calculate the code coverage (M16)
 * [ ] Get some continuous integration running on the GitHub repository (M17)
 * [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
@@ -103,13 +103,13 @@ will check the repositories and the code to verify your answers.
 * [ ] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
-* [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
-* [ ] If applicable, optimize the performance of your training pipeline by using distributed training (M30)
+* [x] If applicable, optimize the performance of your data loading using distributed data loading (M29) - **Arham Aziz Noman (s250173)**
+* [x] If applicable, optimize the performance of your training pipeline by using distributed training (M30) - **Arham Aziz Noman (s250173)**
 * [ ] Play around with quantization, compilation and pruning for you trained models to increase inference speed (M31)
 
 ### Extra
 
-* [ ] Write some documentation for your application (M32)
+* [x] Write some documentation for your application (M32) - **Arham Aziz Noman (s250173)**
 * [ ] Publish the documentation to GitHub Pages (M32)
 * [ ] Revisit your initial project description. Did the project turn out as you wanted?
 * [ ] Create an architectural diagram over your MLOps pipeline
