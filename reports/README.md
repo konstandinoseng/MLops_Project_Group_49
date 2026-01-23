@@ -134,7 +134,7 @@ MLOps 49
 >
 > Answer:
 
-s250219,s250173,s250155
+s250219,s250173,s250155,s250269,
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -301,9 +301,9 @@ We used Hydra for experiment configuration via YAML files. Our setup includes:
 - `configs/config.yaml` - Main experiment configuration
 - `configs/sweep.yaml` - Hyperparameter sweep configuration
 
-Example run: `python src/project/train.py --config-path configs/ --config-name config learning_rate=1e-3 batch_size=32`
+Example run: uv run train training.lr=0.01 training.batch_size=32
 
-This allows flexible parameter overriding from command line while maintaining reproducibility through config files.
+This allows flexible parameter overriding from command line (using dot notation for nested configs) while maintaining reproducibility through config files.
 
 ### Question 13
 
@@ -671,9 +671,11 @@ Our solutions involved reading documentation thoroughly, using community forums,
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
-*Student s250219 was in charge of developing of setting up the initial cookiecutter template and dependencies setup, code profiling, wandb setup,logging and hyperparameter optimization and also data drifting detector setup.
+*Student s250269 was responsible for the core project infrastructure and cloud setup. This involved initializing the Git repository and managing environments with uv (M2, M5), implementing CLIs for reproducible script execution (M9), and configuring Hydra for hyperparameter management (M11). They also handled the containerization of the application by building Docker images for training and inference (M10) and set up the Google Cloud Storage bucket for DVC remote storage (M21).
 
 *Student s250173 was in charge of developing the core ML pipeline including data loading (`data.py`), model architecture (`model.py`), and training procedures (`train.py`). Implemented PEP8 compliance and type hints throughout the codebase. Set up initial DVC for data versioning and processed dataset tracking. Wrote comprehensive unit tests for data loading and model output validation. Optimized data pipeline performance for distributed data loading achieving 3-5x speedup. Documented the technical architecture and model design decisions.
+
+*Student s250269 was responsible for the core project infrastructure and cloud setup. This involved initializing the Git repository and managing environments with uv (M2, M5), implementing CLIs for reproducible script execution (M9), and configuring Hydra for hyperparameter management (M11). They also handled the containerization of the application by building Docker images for training and inference (M10) and set up the Google Cloud Storage bucket for DVC remote storage (M21).
 
 *Student s250155 was responsible for implementing CI/CD workflows with multi-OS and multi-Python testing, setting up pre-commit hooks, configuring code quality tools (Ruff, mypy), writing unit tests for data and model components, creating load testing framework with Locust, and documenting the deployment process and testing strategies.
 
