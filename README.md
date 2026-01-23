@@ -201,17 +201,6 @@ Serve documentation locally:
 mkdocs serve
 ```
 
-## Contributors
-
-### Arham Aziz Noman (s250173)
-**Contributions:**
-- **M6:** Core ML pipeline - `data.py`, `model.py`, `train.py`
-- **M7:** Coding standards and PEP8 enforcement, type hinting across codebase
-- **M8:** Initial DVC setup for data versioning and processed dataset tracking
-- **M16:** Unit tests for data loading and model output validation
-- **M29/30:** Data loader optimization for scalability
-- **M32:** Technical documentation and model architecture summary
-
 ## License
 
 This project is licensed under the MIT License. See LICENSE for details.
