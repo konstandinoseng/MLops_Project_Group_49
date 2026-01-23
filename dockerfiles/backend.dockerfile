@@ -6,6 +6,7 @@ COPY uv.lock uv.lock
 COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 COPY README.md README.md
+COPY .git .git
 COPY .dvc .dvc
 COPY data/raw data/raw
 COPY data/processed data/processed
