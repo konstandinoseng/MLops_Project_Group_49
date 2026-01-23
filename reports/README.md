@@ -686,6 +686,8 @@ Our solutions involved reading documentation thoroughly, using community forums,
 
 *Student s250173 was in charge of developing the core ML pipeline including data loading (`data.py`), model architecture (`model.py`), and training procedures (`train.py`). Implemented PEP8 compliance and type hints throughout the codebase. Set up initial DVC for data versioning and processed dataset tracking. Wrote comprehensive unit tests for data loading and model output validation. Optimized data pipeline performance for distributed data loading achieving 3-5x speedup. Documented the technical architecture and model design decisions.
 
+*Student s250155 was responsible for implementing CI/CD workflows with multi-OS and multi-Python testing, setting up pre-commit hooks, configuring code quality tools (Ruff, mypy), writing unit tests for data and model components, creating load testing framework with Locust, and documenting the deployment process and testing strategies.
+
 All members contributed to code reviews via pull requests, API development and testing, Docker containerization, and GCP cloud infrastructure setup.
 
 We have used GitHub Copilot to help accelerate code writing and ChatGPT for debugging cloud configuration issues.
