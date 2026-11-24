@@ -193,6 +193,24 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+### Automatic Hook Updates
+
+The `Pre-commit auto-update` workflow updates hook versions and opens a pull
+request when changes are available. It requests `contents: write` and
+`pull-requests: write` for `GITHUB_TOKEN`, but pull request creation also
+requires a repository setting:
+
+1. A repository administrator must open **Settings → Actions → General**.
+2. Under **Workflow permissions**, enable **Allow GitHub Actions to create and
+   approve pull requests** and save. This setting applies to other workflows
+   with the necessary permissions too. If it is unavailable, check for a more
+   restrictive organization or enterprise policy.
+3. Run **Pre-commit auto-update** from the Actions tab on the default branch
+   and confirm the job succeeds. When hook updates are available, confirm that
+   a pull request is created or updated.
+
+See [GitHub's Actions settings documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests).
+
 ## Documentation
 
 Serve documentation locally:
